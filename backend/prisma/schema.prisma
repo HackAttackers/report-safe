@@ -7,3 +7,143 @@ datasource db {
   url      = env("DIRECT_URL")
 }
 
+model Report {
+  id           String         @id @default(uuid())
+  ticketNumber String         @unique
+  description  String
+  crimeType    CrimeType
+  priority     Priority
+  authority    Authority      @relation("AuthorityReports", fields: [authorityId], references: [id])
+  authorityId  String
+  location     Location[]     @relation()
+  locationId   String
+  status       StatusUpdate[] @relation()
+  statusId     String
+  question     Question[]     @relation("ReportQuestions")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([crimeType, priority,ticketNumber,authorityId,locationId,statusId])
+}
+
+model Authority {
+  id              String   @id @default(uuid())
+  name            String
+  assignedReports Report[] @relation("AuthorityReports")
+  contactInfo     Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([id])
+}
+
+model User {
+  id          String   @id @default(uuid())
+  username    String   @unique
+  password    String
+  role        UserRole
+  email       String   @unique
+  phoneNumber String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reportId  String   @unique
+  latitude  Float
+  longitude Float
+  address   Json
+  createdAt DateTime @default(now())
+  
+  @@index([id,reportId,latitude,longitude,address])
+}
+
+model StatusUpdate {
+  id        String     @id @default(uuid())
+  report    Report     @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reportId  String     @unique
+  status    StatusEnum
+  message   String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([id,reportId,status])
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  report    Report   @relation("ReportQuestions", fields: [reportId], references: [id])
+  reportId  String
+  question  String
+  answer    String?
+  createdAt DateTime @default(now())
+
+  @@index([id,reportId])
+}
+
+enum CrimeType {
+  AssaultaAndBattery
+  DomesticViolence
+  Homicide
+  Robbery
+  SexualAssault
+  ChildAbuse
+  Burglary
+  TheftAndLarceny
+  Vandalism
+  Arson
+  Trespassing
+  MotorVehicleTheft
+  Hacking
+  IdentityTheft
+  PhishingAndScamming
+  CyberStalking
+  ChildExploitation
+  OnlineFraud
+  DrugTrafficking
+  GangActivity
+  Smuggling
+  Fraud
+  Bribery
+  Embezzelment
+  MoneyLaundering
+  CorporateEspionage
+  DrugPossession
+  PublicIntoxication
+  Prostitution
+  Gambling
+  DisorderlyConduct
+  RacialAndEthnicHateCrime
+  ReligiousHateCrime
+  LGBTQHateCrime
+  IllegalDumping
+  Poaching
+  PollutionViolation
+  CyberStalkingKidnapping
+  Extortion
+  Forgery
+  AnimalCreulty
+  TrafficViolations
+  Terorism
+  Espionage
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum UserRole {
+  ADMIN
+  LAW_ENFORCEMENT
+}
+
+enum StatusEnum {
+  RECEIVED
+  UNDER_INVESTIGATION
+  CLOSED
+}
