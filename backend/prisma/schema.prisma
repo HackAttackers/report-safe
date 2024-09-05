@@ -13,24 +13,24 @@ model Report {
   description  String
   crimeType    CrimeType
   priority     Priority
-  authority    Authority      @relation("AuthorityReports", fields: [authorityId], references: [id])
-  authorityId  String
-  location     Location[]     @relation()
-  locationId   String
-  status       StatusUpdate[] @relation()
-  statusId     String
+  authorities    Authority[]      @relation("ReportAuthorities")
+  latitude String
+  longitude String
+  message String?
+  status StatusEnum
   question     Question[]     @relation("ReportQuestions")
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  @@index([crimeType, priority,ticketNumber,authorityId,locationId,statusId])
+  @@index([crimeType, priority,ticketNumber,status])
 }
 
 model Authority {
   id              String   @id @default(uuid())
   name            String
-  assignedReports Report[] @relation("AuthorityReports")
-  contactInfo     Json
+  assignedReports Report[] @relation("ReportAuthorities")
+  users User[] @relation("AuthorityUsers")
+  contactInfo     Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -41,37 +41,14 @@ model User {
   id          String   @id @default(uuid())
   username    String   @unique
   password    String
+  authority Authority? @relation("AuthorityUsers",fields: [authorityId],references: [id] )
+  authorityId String?
   role        UserRole
   email       String   @unique
   phoneNumber String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
-model Location {
-  id        String   @id @default(uuid())
-  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  reportId  String   @unique
-  latitude  Float
-  longitude Float
-  address   Json
-  createdAt DateTime @default(now())
-  
-  @@index([id,reportId,latitude,longitude,address])
-}
-
-model StatusUpdate {
-  id        String     @id @default(uuid())
-  report    Report     @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  reportId  String     @unique
-  status    StatusEnum
-  message   String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  @@index([id,reportId,status])
-}
-
 model Question {
   id        String   @id @default(uuid())
   report    Report   @relation("ReportQuestions", fields: [reportId], references: [id])
@@ -84,7 +61,7 @@ model Question {
 }
 
 enum CrimeType {
-  AssaultaAndBattery
+  AssaultAndBattery
   DomesticViolence
   Homicide
   Robbery

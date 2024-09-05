@@ -1,0 +1,17 @@
+reports - 
+    create - 
+        params -> description, location - latitude, longitude, address
+        create ticketNum, add the priority, add authority, add status
+        return -> ticketNum
+     
+    get - 
+        params -> ticketNum
+        fetch the report, filter out description - priority - authority name - status - questions - location
+        return -> all the above
+    
+questions - 
+    create - 
+        params -> ticketNum, question
+        fetch the report with the  ticketNum, provide the reportId to question
+        return "Question added. Check the status of Report for response (if any)"
+    
